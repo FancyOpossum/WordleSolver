@@ -146,8 +146,8 @@ Use these fields to prune your candidate list and choose the next word.
 
 ## Rules & academic integrity
 
-* **Day 1:** You **may not** use any online AI tools (ChatGPT, Copilot, etc.).  Plan your approach and begin coding locally. 
-* **Day 2 onward:** You **may** consult AI tools, but you **must** attend class and be prepared to explain the code in person to receive credit.
-* Day 1 AI generated code will result in a zero. Unexplained AI generated code or plagiarism on day 2 results in a zero.
+* **First 30 minutes:** You **may not** use any online AI tools (ChatGPT, Copilot, etc.).  Plan your approach and begin coding locally. 
+* **Last 40 minutes:** You **may** consult AI tools, but you **must** attend class and be prepared to explain the code in person to receive credit.
+* First 30 minutes AI generated code will result in a zero. Unexplained AI generated code or plagiarism in second half results in a zero.
 
 Good luck – and have fun cracking Wordle efficiently!
