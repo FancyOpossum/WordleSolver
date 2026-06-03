@@ -67,24 +67,39 @@ public sealed class SlowStudentSolver : IWordleSolverStrategy
         if (previousResult.Guesses.Count == 0)
         {
             // TODO: Pick the best starting word from wordle.txt 
-              
+            string firstWord = WordList.Contains("slate") ? "slate" : WordList.First();
+
+            // Save that we guessed this word.
+            _guessedWords.Add(firstWord);
+
+            // Remove it from remaining words so we do not guess it again.
+            _remainingWords.Remove(firstWord);
+
+            return firstWord;
             // BE CAREFUL that the first word you pick is in that wordle.txt list or your
             // program won't work. Regular Wordle allows users to guess any five-letter
             // word from a much larger dictionary, but we restrict it to the words that
-            // can actually be chosen by WordleService to make it easier on you.
-
-            string firstWord = "abyss"; 
-
-            // Filter _remainingWords to remove any words that don't match the first word
-            _remainingWords.Remove(firstWord);
-
-            return firstWord;  
+            // can actually be chosen by WordleService to make it easier on
         }
         else
         {
             // TODO: Analyze the previousResult and reduce/filter _remainingWords based on the feedback
+            // Get the most recent guess.
+            var lastGuess = previousResult.Guesses.Last();
 
+            // Get the word that was guessed.
+            string guessedWord = lastGuess.Word;
+
+            // Get the feedback for that word.
+            var feedback = lastGuess.LetterStatuses;
+
+            // Remove words that cannot be the answer.
+            _remainingWords = _remainingWords
+       .Where(word => !_guessedWords.Contains(word))
+       .Where(word => MatchesFeedback(word, guessedWord, feedback))
+       .ToList();
         }
+
 
         // Utilize the remaining words to choose the next guess
         string choice = ChooseBestRemainingWord(previousResult);
@@ -92,7 +107,72 @@ public sealed class SlowStudentSolver : IWordleSolverStrategy
 
         return choice;
     }
+    private static bool MatchesFeedback(string possibleAnswer, string guessedWord, IReadOnlyList<LetterStatus> realFeedback)
+    {
+        // Create the feedback we WOULD get if possibleAnswer was the real answer.
+        List<LetterStatus> testFeedback = GetFeedback(possibleAnswer, guessedWord);
 
+        // Compare the fake feedback to the real feedback.
+        for (int i = 0; i < 5; i++)
+        {
+            if (testFeedback[i] != realFeedback[i])
+                return false;
+        }
+
+        return true;
+    }
+
+    private static List<LetterStatus> GetFeedback(string answer, string guess)
+    {
+        // Start with everything gray.
+        List<LetterStatus> result =
+        [
+            LetterStatus.Unused,
+        LetterStatus.Unused,
+        LetterStatus.Unused,
+        LetterStatus.Unused,
+        LetterStatus.Unused
+        ];
+
+        // This stores answer letters that were not already used as green.
+        Dictionary<char, int> remainingLetters = new();
+
+        // First check for green letters.
+        for (int i = 0; i < 5; i++)
+        {
+            if (guess[i] == answer[i])
+            {
+                result[i] = LetterStatus.Correct;
+            }
+            else
+            {
+                char letter = answer[i];
+
+                if (!remainingLetters.ContainsKey(letter))
+                    remainingLetters[letter] = 0;
+
+                remainingLetters[letter]++;
+            }
+        }
+
+        // Then check for yellow letters.
+        for (int i = 0; i < 5; i++)
+        {
+            // Skip green letters.
+            if (result[i] == LetterStatus.Correct)
+                continue;
+
+            char letter = guess[i];
+
+            if (remainingLetters.ContainsKey(letter) && remainingLetters[letter] > 0)
+            {
+                result[i] = LetterStatus.Misplaced;
+                remainingLetters[letter]--;
+            }
+        }
+
+        return result;
+    }
     /// <summary>
     /// Pick the best of the remaining words according to some heuristic.
     /// For example, you might want to choose the word that has the most
@@ -105,7 +185,24 @@ public sealed class SlowStudentSolver : IWordleSolverStrategy
         if (_remainingWords.Count == 0)
             throw new InvalidOperationException("No remaining words to choose from");
 
-        // Obviously the first word is the best right?
-        return _remainingWords.First();  
+        // Count how often each letter appears in the remaining possible words.
+        Dictionary<char, int> letterCounts = new();
+
+        foreach (string word in _remainingWords)
+        {
+            // Distinct means repeated letters only count once.
+            foreach (char letter in word.Distinct())
+            {
+                if (!letterCounts.ContainsKey(letter))
+                    letterCounts[letter] = 0;
+
+                letterCounts[letter]++;
+            }
+        }
+
+        // Pick the word with the most common useful letters.
+        return _remainingWords
+            .OrderByDescending(word => word.Distinct().Sum(letter => letterCounts[letter]))
+            .First();
     }
 }
