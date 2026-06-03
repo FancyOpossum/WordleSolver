@@ -21,7 +21,7 @@ public sealed class SlowStudentSolver : IWordleSolverStrategy
     private List<string> _remainingWords = new();
     
     // TODO: ADD your own private variables that you might need
-
+    private readonly HashSet<string> _guessedWords = new();
     /// <summary>
     /// Loads the dictionary from disk, filtering to distinct five-letter lowercase words.
     /// </summary>
@@ -41,7 +41,7 @@ public sealed class SlowStudentSolver : IWordleSolverStrategy
     public void Reset()
     {
 		// TODO: What should happen when a new game starts?
-
+        _guessedWords.Clear();
 		// If using SLOW student strategy, we just reset the current index
 		// to the first word to start the next guessing sequence
         _remainingWords = [..WordList];  // Set _remainingWords to a copy of the full word list
@@ -67,10 +67,12 @@ public sealed class SlowStudentSolver : IWordleSolverStrategy
         if (previousResult.Guesses.Count == 0)
         {
             // TODO: Pick the best starting word from wordle.txt 
+              
             // BE CAREFUL that the first word you pick is in that wordle.txt list or your
             // program won't work. Regular Wordle allows users to guess any five-letter
             // word from a much larger dictionary, but we restrict it to the words that
             // can actually be chosen by WordleService to make it easier on you.
+
             string firstWord = "abyss"; 
 
             // Filter _remainingWords to remove any words that don't match the first word
@@ -81,6 +83,7 @@ public sealed class SlowStudentSolver : IWordleSolverStrategy
         else
         {
             // TODO: Analyze the previousResult and reduce/filter _remainingWords based on the feedback
+
         }
 
         // Utilize the remaining words to choose the next guess
